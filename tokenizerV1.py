@@ -1,6 +1,11 @@
 import urllib.request
 import re
 
+## tiktoken by openai
+from importlib.metadata import version
+import tiktoken
+print("tiktoken version:", version("tiktoken"))
+
 #url = ( "https://raw.githubusercontent.com/rasbt/"
 #        "LLMs-from-scratch/main/ch02/01_main-chapter-code/"
 #        "the-verdict.txt")
@@ -90,18 +95,18 @@ if __name__ == "__main__":
     all_tokens.extend(["<|endoftext|>", "<|unk|>"])
     vocab = {token:integer for integer, token in enumerate(all_tokens)}
 
-    print(len(vocab.items()))
-    for i, item in enumerate(list(vocab.items())[-5:]):
-        print(item)
+    #print(len(vocab.items()))
+    #for i, item in enumerate(list(vocab.items())[-5:]):
+    #    print(item)
 
 
     tokenizer = SimpleTokenizerV2(vocab)
     text = """"It's the last he painted, you know,"
            Mrs. Gisburn said with pardonable pride."""
     ids = tokenizer.encode(text)
-    print(ids)
+    #print(ids)
     text_decode = tokenizer.decode(ids)
-    print(text_decode)
+    #print(text_decode)
 
     # non existent token problem
     text1 = "Hello, do you like tea?"
@@ -110,7 +115,29 @@ if __name__ == "__main__":
 
     print(text)
     
-    print(tokenizer.encode(text))
+#    print(tokenizer.encode(text))
+    ## decode back the encoded 
+    print(tokenizer.decode(tokenizer.encode(text)))
+ 
 
 
-    
+    #### tiktoken
+    ## first use and if you hang here thats because, answer from my friend Anton
+    # Yep — I see exactly what’s happening here. You're getting choked by a remote file download, and the tiktoken library is hanging because it’s trying to fetch GPT-2 BPE merge data from the web on first use.
+    #And it:
+    # Does not cache aggressively by default
+    # Does not show progress
+    # Does not timeout cleanly
+    # And if your net is congested or the blob server is moody (which happens)...
+    # 💀 It just hangs silently in the bowels of requests.
+    tokenizer_gpt2 = tiktoken.get_encoding("gpt2")
+    text = ("Hello, do you like tea? <|endoftext|> In the sunlit terraces"
+            "of someunknownPlace."
+    )
+    integers = tokenizer_gpt2.encode(text, allowed_special = {"<|endoftext|>"})
+    print(integers)
+    strings = tokenizer_gpt2.decode(integers)
+    print(strings)
+
+
+
